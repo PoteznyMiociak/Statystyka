@@ -29,20 +29,5 @@ dane <- data %>%
 kable(dane, format = "html", caption = "Summary of Monthly Expenditure") %>%
   kable_styling(full_width = FALSE)
 ```
-## Challenge 1
-```{r most popular production}
 
-# we decide which productions are the most popular based on total income
-most_popular_production <- netflix_data %>%
-  select(Title,Boxoffice) %>%
-  arrange(desc(Boxoffice)) %>%
-  head(10)
-
-# XD troche z tymi wartosciami
-ggplot(most_popular_production, aes(x = Title, y = Boxoffice)) +
-  geom_col(fill = "skyblue") +
-  labs(x = "Box Office", y = "Title") +
-  theme_minimal() +
-  coord_flip()
-```
 
