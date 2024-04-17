@@ -1,0 +1,48 @@
+---
+title: "Data Visualising"
+author: "Klaudia Aleksiejew, Tymon Bujny, Mateusz Barszczewski, Paweł Gallas"
+date: "2024-04-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r read data}
+library(magrittr)
+library(dplyr)
+library(tidyverse)
+data <- read.csv("CreditCard.csv")
+netflix_data = read.csv("https://raw.githubusercontent.com/kflisikowski/ds/master/netflix-dataset.csv?raw=true")
+```
+## Ex 1
+```{r calculate mean}
+library(kableExtra)
+dane <- data %>%
+  group_by(months) %>%
+  summarise(mean = mean(expenditure)) %>%
+  distinct() 
+
+kable(dane, format = "html", caption = "Summary of Monthly Expenditure") %>%
+  kable_styling(full_width = FALSE)
+```
+## Challenge 1
+```{r most popular production}
+
+# we decide which productions are the most popular based on total income
+most_popular_production <- netflix_data %>%
+  select(Title,Boxoffice) %>%
+  arrange(desc(Boxoffice)) %>%
+  head(10)
+
+# XD troche z tymi wartosciami
+ggplot(most_popular_production, aes(x = Title, y = Boxoffice)) +
+  geom_col(fill = "skyblue") +
+  labs(x = "Box Office", y = "Title") +
+  theme_minimal() +
+  coord_flip()
+```
+
