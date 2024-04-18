@@ -1,0 +1,91 @@
+---
+title: "Data Visualising"
+author: "Klaudia Aleksiejew, Tymon Bujny, Paweł Gallas, Mateusz Barszczewski"
+date: "2024-04-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r add data}
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+netflix_data = read.csv("https://raw.githubusercontent.com/kflisikowski/ds/master/netflix-dataset.csv?raw=true")
+```
+
+## Ex2 First
+```{r first}
+
+netflix_data %>%
+  filter(grepl("Poland", Country.Availability) & grepl("Polish", Languages)) %>%
+  ggplot(aes(x = IMDb.Score, fill = Series.or.Movie, alpha=0.5)) +
+  geom_histogram() 
+
+```
+## Ex2 Second
+```{r second}
+
+netflix_data %>%
+  filter(grepl("Poland", Country.Availability) & grepl("Polish", Languages)) %>%
+  ggplot(aes(x = IMDb.Score,fill=Series.or.Movie,alpha=0.5)) +
+  geom_density()
+
+```
+```{r third}
+
+popular_language <- netflix_data %>% 
+  separate_rows(Languages, sep=", ") %>%
+  select(Title,Languages)
+
+popular_language <- popular_language %>%
+  group_by(Languages) %>%
+  transmute(count = n()) %>%
+  distinct() %>%
+  arrange(desc(count)) %>% 
+  head(12) 
+
+  ggplot(popular_language,aes(x=Languages,y=count)) +
+  geom_col()
+```
+
+```{r challenge 2 data, message=FALSE, warning=FALSE}
+
+long_data <- netflix_data %>%
+  select(Series.or.Movie,Hidden.Gem.Score,IMDb.Score,Rotten.Tomatoes.Score,Metacritic.Score) %>%
+  pivot_longer(cols = c(Hidden.Gem.Score,IMDb.Score,Rotten.Tomatoes.Score,Metacritic.Score), names_to="Score_Type", values_to = "Value")
+ 
+long_data <- long_data %>% drop_na()
+
+frequency_data <- long_data %>%
+  group_by(Series.or.Movie, Score_Type, Value) %>%
+  summarise(Frequency = n())
+
+```
+
+### Plot for "IMDb.Score", "Hidden.Gem.Score" as they have the range 10
+```{r challenge 2.1}
+frequency_data %>%
+  filter(Score_Type %in% c("IMDb.Score", "Hidden.Gem.Score")) %>%
+  ggplot(aes(x = Value, y = Frequency, color = Score_Type)) +
+  geom_line() +
+  facet_wrap(Series.or.Movie ~ Score_Type, ncol = 2) +
+  scale_y_continuous(trans = "log10") +
+  labs(x="Score Value")
+
+```
+
+### Plot for "Rotten.Tomatoes.Score", "Metacritic.Score" as they have the range 100
+```{r challenge 2.2}
+frequency_data %>%
+  filter(Score_Type %in% c("Rotten.Tomatoes.Score", "Metacritic.Score")) %>%
+  ggplot(aes(x = Value, y = Frequency, color = Score_Type)) +
+  geom_line() +
+  facet_wrap(Series.or.Movie ~ Score_Type, ncol = 2) +
+  scale_y_continuous(trans = "log10") +
+  labs(x="Score Value")
+```
+
+
