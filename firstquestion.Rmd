@@ -1,0 +1,158 @@
+---
+title: "firstquestion"
+author: "Pawel"
+date: "2024-04-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1. Different kinds of cards
+
+Are the results different for other types of credit cards? How much do they differ from each other?
+
+```{r, include=FALSE}
+library(AER)
+library(dplyr)
+library(knitr)
+library(ggplot2)
+data("CreditCard")
+
+```
+
+
+### Is the income different?
+
+Is the income dependent on the type of a credit card? For how many cards is the variable "owner" true?
+
+```{r income}
+cards_summarised <- CreditCard %>%
+  mutate(owner_true = ifelse(owner == "yes", TRUE, FALSE)) %>%
+  group_by(card) %>%
+  summarise(
+    quantity = n(),
+    range = max(income) - min(income),
+    'highest income' = max(income),
+    'lowest income' = min(income),
+    'mean of income' = mean(income),
+    'median of income' = median(income),
+    'interquartile range' = quantile(income, 0.75) - quantile(income, 0.25),
+    'standard deviation' = sd(income),
+    'owner is true' = sum(owner_true)
+  )
+
+```
+
+```{r, echo = FALSE}
+library(kableExtra)
+cards_summarised %>%
+  kable(caption = "Summary table for income") %>%
+  kable_styling(full_width = FALSE) 
+
+CreditCard %>%
+  ggplot(aes(y = income, color = card)) +
+  geom_boxplot()
+
+```
+
+### How old are the cards?
+
+How long the cards exist? Are older credit cards more common?
+
+```{r months}
+
+median_months <- median(CreditCard$months)
+mean_months <- mean(CreditCard$months)
+
+months_summarised <- CreditCard %>%
+  group_by(card) %>%
+  summarise(
+    'median of months' = median_months,
+    'percentage of older than the median' = paste(round((sum(months > median_months) / n()) * 100, 2), "%", sep = ""),
+    'mean of months' = mean_months,
+    'percentage of older than the mean' = paste(round((sum(months > mean_months) / n()) * 100, 2), "%", sep = "")
+  )
+```
+
+```{r, echo = FALSE}
+
+months_summarised %>%
+  kable(caption="How months are divided by cards") %>%
+  kable_styling(full_width = FALSE)
+
+CreditCard %>%
+  ggplot(aes(x = months, fill = card)) +
+  geom_histogram(position = "dodge")
+
+```
+
+### Are share dependent on kind of a card?
+
+```{r}
+share_summarised <- CreditCard %>%
+  group_by(card) %>%
+  summarise(
+    quantity = n(),
+    range = max(share) - min(share),
+    'highest value of share' = max(share),
+    'lowest value of share' = min(share),
+    'mean of share' = mean(share),
+    'median of share' = median(share),
+    'interquartile share' = quantile(share, 0.75) - quantile(share, 0.25),
+    'standard deviation' = sd(share)
+  )
+
+```
+
+
+```{r, echo = FALSE}
+
+share_summarised %>%
+  kable(caption="Share in comparison with cards") %>%
+  kable_styling(full_width = FALSE)
+
+```
+
+### Should I add share as well?
+
+
+## 2. Different social groups
+
+How data is divide by age?
+
+```{r}
+age_data <- CreditCard %>%
+  mutate(age_group = ifelse(age<30, "young", ifelse(age<50, "middle", "old")))
+
+age_data$age_group <- factor(age_data$age_group, levels = c("young", "middle", "old"))
+
+# Plot the data
+ggplot(age_data, aes(x = age_group, y = age, fill = age_group)) +
+  geom_boxplot() +
+  labs(x = "Age Group", y = "Age", fill = "Age Group") +
+  ggtitle("Age Distribution by Age Group") +
+  theme_minimal()
+```
+```{r}
+ggplot(age_data, aes(x = age_group, y = expenditure, color = age_group)) +
+  geom_point(position = position_jitter(width = 0.2)) + 
+  stat_summary(fun = mean, geom = "errorbar", width = 0.2) +
+  labs(x = "Age Group", y = "Expenditure", fill = "Age Group") +
+  ggtitle("Expenditure by Age Group") +
+  theme_minimal() +
+  scale_y_continuous(breaks = seq(0, max(age_data$expenditure), by = 200))
+```
+
+
+```{r}
+ggplot(age_data, aes(x = age_group, y = income, color = age_group)) +
+  geom_point(position = position_jitter(width = 0.2)) + 
+  stat_summary(fun = mean, geom = "errorbar", width = 0.2) +
+  labs(x = "Age Group", y = "Income", fill = "Age Group") +
+  ggtitle("Income by Age Group") +
+  theme_minimal() +
+  scale_y_continuous(breaks = seq(0, max(age_data$income), by = 1))
+```
+
